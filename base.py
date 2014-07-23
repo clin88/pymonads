@@ -6,6 +6,7 @@ from itertools import repeat, imap, chain
 
 F = partial
 
+
 class Monad(object):
     __metaclass__ = ABCMeta
 
@@ -17,6 +18,7 @@ class Monad(object):
     def wrap(self, other):
         pass
 
+
 class Maybe(Monad):
     @classmethod
     def wrap(cls, other):
@@ -25,6 +27,7 @@ class Maybe(Monad):
     def fmap(self, f):
         if isinstance(self, Just):
             return Just(f(self.value))
+
 
 class Just(Maybe):
     def __rshift__(self, other):
@@ -35,6 +38,7 @@ class Just(Maybe):
 
     def __init__(self, value):
         self.value = value
+
 
 class Nothing(Maybe):
     def __rshift__(self, other):
@@ -66,8 +70,10 @@ class MList(Monad):
     def wrap(cls, value):
         return cls((value,))
 
+
 def threemultsof(n, v):
-    return [n*v, 2*n*v, 3*n*v]
+    return [n * v, 2 * n * v, 3 * n * v]
+
 
 def div(n, d):
     if d == 0:
@@ -75,8 +81,10 @@ def div(n, d):
     else:
         return Just(n / d)
 
+
 def iseven(n):
     return Just(not (n % 2))
+
 
 def filterm(pred, ls, monad):
     #hack to find what kind of monad pred returns
@@ -84,20 +92,21 @@ def filterm(pred, ls, monad):
     if not ls:
         return monad.wrap(tuple(ls))
 
-    return pred(ls[0]) >> (lambda flag: \
-        filterm(pred, ls[1:], monad) >> (lambda ys: \
-        monad.wrap((ls[0],) + ys if flag else ys)))
+    return pred(ls[0]) >>
+       (lambda flag: filterm(pred, ls[1:], monad) >>
+       (lambda ys: monad.wrap((ls[0],) + ys if flag else ys)))
+
 
 def main():
     print Just(5) >> F(div, 15) >> F(div, 1)
     print Just(10) >> F(div, 0) >> F(div, 2)
 
-    mls = MList((1,2,3)) >> (lambda _: MList((1,)))
+    mls = MList((1, 2, 3)) >> (lambda _: MList((1,)))
     print mls
 
-    mls2 = MList((1,2,3)) >> (lambda xs: \
-           MList((1,)) >> (lambda _: \
-           threemultsof(3, xs)))
+    mls2 = MList((1, 2, 3)) >> (lambda xs: \
+                                    MList((1,)) >> (lambda _: \
+                                                        threemultsof(3, xs)))
     print mls2
 
     result = filterm(iseven, range(100), Maybe)
@@ -107,6 +116,7 @@ def main():
     print result
 
     pass
+
 
 if __name__ == "__main__":
     main()
